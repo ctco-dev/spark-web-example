@@ -5,16 +5,13 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.home.controllers.Controller;
 import com.home.infrastructure.ApplicationModule;
+import com.home.util.Stats;
 import lombok.extern.slf4j.Slf4j;
 import spark.Route;
 
 import javax.inject.Inject;
 
-import static spark.Spark.before;
-import static spark.Spark.delete;
-import static spark.Spark.get;
-import static spark.Spark.post;
-import static spark.Spark.put;
+import static spark.Spark.*;
 
 @Slf4j
 public class Application {
@@ -35,28 +32,21 @@ public class Application {
 
         getAsJson("/aggregate", controller::getAggregate);
         getAsJson("/data/:id", controller::getData);
+        get("/stats", (req, res)->{
+            Stats.printMemoryStats();
+             return 1;
+        });
 
         put("/data/:id", controller::updateData, objectMapper::writeValueAsString);
         delete("/data/:id", controller::deleteData, objectMapper::writeValueAsString);
         post("/data", controller::createData, objectMapper::writeValueAsString);
 
-        info();
+        Stats.printMemoryStats();
     }
 
     private void getAsJson(String path, Route route) {
         get(path, route, objectMapper::writeValueAsString);
     }
 
-    private static void info() {
-        // Get current size of heap in bytes
-        long totalHeapSize = Runtime.getRuntime().totalMemory();
-        log.info("Heap total: {}", totalHeapSize/ 1024 / 1024 + " Mb");
 
-        // Get maximum size of heap in bytes. The heap cannot grow beyond this size.// Any attempt will result in an OutOfMemoryException.
-        log.info("Heap max size: {}", Runtime.getRuntime().maxMemory()/ 1024 / 1024 + " Mb");
-
-        // Get amount of free memory within the heap in bytes. This size will increase // after garbage collection and decrease as new objects are created.
-        long heapFreeSize = Runtime.getRuntime().freeMemory();
-        log.info("Heap used: {}", (totalHeapSize - heapFreeSize) / 1024 / 1024 + " Mb");
-    }
 }
