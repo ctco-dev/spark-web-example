@@ -13,9 +13,8 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 
 public class Controller {
 
@@ -75,12 +74,16 @@ public class Controller {
         return data;
     }
 
-    public Aggregate getAggregate(Request request, Response response) throws ExecutionException, InterruptedException {
+    public Aggregate getAggregate(Request request, Response response) {
 
-        Future<Data> data1Future = executorService.submit(() -> remoteDataClient.getRemoteData("1", 600));
+        CompletableFuture<Data> data1Future = CompletableFuture.supplyAsync(
+                () -> remoteDataClient.getRemoteData("1", 600),
+                executorService
+        );
+
         Data data2 = remoteDataClient.getRemoteData("2", 600);
 
-        List<Data> results = Arrays.asList(data1Future.get(), data2);
+        List<Data> results = Arrays.asList(data1Future.join(), data2);
         return new Aggregate(results);
     }
 

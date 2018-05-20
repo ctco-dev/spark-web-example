@@ -32,9 +32,9 @@ public class Application {
 
         getAsJson("/aggregate", controller::getAggregate);
         getAsJson("/data/:id", controller::getData);
-        get("/stats", (req, res)->{
+        get("/stats", (req, res) -> {
             Stats.printMemoryStats();
-             return 1;
+            return 1;
         });
 
         put("/data/:id", controller::updateData, objectMapper::writeValueAsString);
